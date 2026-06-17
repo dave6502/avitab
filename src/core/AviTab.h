@@ -89,6 +89,7 @@ public:
 private:
     bool hideHeader = false;
     std::shared_ptr<Environment> env;
+    std::shared_ptr<GUIDriver> guiDriver;
     std::shared_ptr<LVGLToolkit> guiLib;
     std::shared_ptr<Label> loadLabel;
 
@@ -111,8 +112,9 @@ private:
     void cleanupLayout();
 
     void onScreenResize();
-    void handleLeftClick(bool down);
-    void handleWheel(bool up);
+    void handleClickCommand(bool down, bool drag);
+    void handleWheelUpCommand();
+    void handleWheelDownCommand();
     void changeChartTab(bool next);
 };
 
