@@ -26,6 +26,7 @@
 #include "charts/navigraph/NavigraphAPI.h"
 #include "charts/chartfox/ChartFoxAPI.h"
 #include "charts/Crypto.h"
+#include "maps/downloader.h"
 
 namespace apis {
 
@@ -37,6 +38,7 @@ public:
     ~ChartService();
 
     // synchronous calls
+    void loadTeamAvitabGeorefs(const std::filesystem::path &programPath);
     void setUseNavigraph(bool use);
     void setUseChartFox(bool use);
     void stop();
@@ -72,6 +74,7 @@ private:
     std::vector<std::shared_ptr<BaseCall>> pendingCalls;
 
     Crypto crypto;
+    maps::Downloader downloader;
     std::map<std::string, std::filesystem::path> jsonFileHashes;
 
     void scanJsonFiles(std::filesystem::path dir);

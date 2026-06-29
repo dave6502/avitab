@@ -22,6 +22,8 @@
 #include "platform/Platform.h"
 #include "charts/Crypto.h"
 #include <nlohmann/json.hpp>
+#include "UnzipWrapper.h"
+
 
 namespace apis {
 
@@ -46,6 +48,12 @@ ChartService::ChartService(const std::filesystem::path &programPath) {
     keepAlive = true;
     apiThread = std::make_unique<std::thread>(&ChartService::workLoop, this);
 
+    try {
+        loadTeamAvitabGeorefs(programPath);
+    } catch (...) {
+        logger::warn("Unable to download TeamAvitab georefs");
+    }
+
     auto calibrationPath = programPath /"MapTiles"/"Mercator"/"Calibration";
     if (std::filesystem::exists(calibrationPath)) {
         scanJsonFiles(calibrationPath);
@@ -53,6 +61,30 @@ ChartService::ChartService(const std::filesystem::path &programPath) {
     } else {
         logger::info("Calibration folder does not exist: %s", calibrationPath.string().c_str());
     }
+
+}
+
+void ChartService::loadTeamAvitabGeorefs(const std::filesystem::path &programPath) {
+	
+	// ToDo Get zip from preferences/config file
+    std::string zipUrl = "https://github.com/dave6502/temp_test_georef/releases/download/2606_2607/TeamAvitabGeorefs.zip";
+    bool cancelToken = false;
+    auto zipBlob = downloader.download(zipUrl, cancelToken);
+    logger::info("Downloaded TeamAvitab georef data %d bytes", zipBlob.size());
+
+    auto zipName = std::filesystem::path(zipUrl).filename();
+    auto zipPath = programPath /"MapTiles"/"Mercator"/"Calibration"/zipName;
+    std::error_code e;
+    std::filesystem::create_directories(zipPath.parent_path(), e);
+    std::ofstream stream(zipPath, std::ios::out | std::ios::binary);
+	// ToDo delete if already there
+    stream.write(reinterpret_cast<const char *>(zipBlob.data()), zipBlob.size());
+	
+    auto zipExtractPath = zipPath;
+    zipExtractPath.replace_extension("");
+    logger::info("Extracting into %s", zipExtractPath.string().c_str());
+	unzip::unzip(zipPath.string().c_str(), zipExtractPath.string().c_str());
+    // Delete zip file ?
 
 }
 
